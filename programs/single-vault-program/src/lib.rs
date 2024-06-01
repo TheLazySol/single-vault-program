@@ -7,10 +7,21 @@ declare_id!("5z6TMA2KJS99AJtZSn51mGLj394Sq4dfcoh36ZmVKeuk");
 pub mod single_vault_program { 
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        let vault_account = &mut ctx.accounts.vault_account;    // Initialize the vault_account
-        vault_account.bump = ctx.bumps.vault_account;                                       // Store the bump seed in the vault_account account.
-        msg!("VaultAccount is Initialized.");                                               // Returns a message on the Blockchain Logs that the VaultAccount is Initialized
+    pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
+        msg!("Initializing XYZ-Vault...");                              // Returns a message on the Blockchain Logs that the VaultAccount is being initialized.
+        Ok(()) 
+    }
+
+    pub fn vault_information(ctx: Context<VaultInformation>) -> Result<()> {
+        msg!("Showing Vault Information: ");                            // Returns a message on the Blockchain Logs that the VaultAccount Information is being shown.
+        msg!("Vault Active: {}", ctx.accounts.vault_account.is_active);
+        msg!("Vault Name: {}", ctx.accounts.vault_account.vault_name);
+        msg!("Token Ticker Symbol: {}", ctx.accounts.vault_account.token_ticker_symbol);
+        msg!("Token Account: {}", ctx.accounts.vault_account.token_account);
+        msg!("Mint Address: {}", ctx.accounts.vault_account.mint_address);
+        msg!("Reward Token: {}", ctx.accounts.vault_account.reward_token);
+        msg!("Annual Percentage Yield Fixed: {}", ctx.accounts.vault_account.annual_percentage_yield_fixed);
+        msg!("Bump: {}", ctx.accounts.vault_account.bump);
         Ok(()) 
     }
 }
@@ -18,27 +29,26 @@ pub mod single_vault_program {
 // Initialize program instructions
 #[derive(Accounts)] 
 pub struct Initialize<'info> {
-    #[account(mut)]
-    pub user: Signer<'info>, 
-
     #[account(
         init,                      // Initialize the vault_account
-        seeds = [b"testVault1"],   // This is the seed for the vault_account
-        bump,                      // This is the bump seed for the vault_account (which is a PDA) 
+        seeds = [b"xyzVault"],     // This is the seed for the vault_account
+        bump,                      // This is the bump address for the vault_account (which is a PDA) and "bumps" the seed to create a unique address (seed + bump).
         payer = user,              // The user is the payer for the vault_account
         space = 256,               // 256 bytes of space for the vault_account
     )]
     // Initialize accounts and the system_program (native program)
     pub vault_account: Account<'info, VaultAccount>,
     pub system_program: Program<'info, System>,      // System Program Initializing the vault_account
-}
 
+    #[account(mut)]
+    pub user: Signer<'info>,
+}
 // This is a Validation Struct in which allows the vault_account PDA to used again in a different instruction. The bump seed for that account is referrenced by bump = vault_account.bump
 #[derive(Accounts)]
-pub struct VaultInformation<'info> { 
+pub struct VaultInformation<'info> {
     #[account(
         mut,
-        seeds = [b"testVault1"],                     // optional seeds for the vault_account i.e. "seeds + Keypair"
+        seeds = [b"xyzVault"],                       // optional seeds for the vault_account i.e. "seeds + Keypair"
         bump = vault_account.bump,                   // bump seed used for the vault_account PDA. Initially the bump + seed was created in the Initialize instruction struct.
     )]
     pub vault_account: Account<'info, VaultAccount>, // Let the instruction know which account to interact with.
